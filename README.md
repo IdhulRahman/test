@@ -1,4 +1,3 @@
-```markdown
 # 🚀 OpenZiti ZTNA Lab Setup (Controller + Edge Router)
 
 [![OpenZiti](https://img.shields.io/badge/Project-OpenZiti-blueviolet?style=for-the-badge&logo=openziti)](https://openziti.io/)
