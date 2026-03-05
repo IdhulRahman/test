@@ -1,4 +1,4 @@
-# 🚀 OpenZiti ZTNA Lab Setup (Controller + Edge Router)
+# 🚀 OpenZiti ZTNA Lab Setup
 
 [![OpenZiti](https://img.shields.io/badge/Project-OpenZiti-blueviolet?style=for-the-badge&logo=openziti)](https://openziti.io/)
 [![Architecture](https://img.shields.io/badge/Architecture-NIST_SP_800--207-green?style=for-the-badge)](https://csrc.nist.gov/publications/detail/sp/800-207/final)
@@ -242,4 +242,4 @@ ziti edge list edge-routers
 | Restart Controller | `sudo systemctl restart ziti-controller` |
 | Restart Router | `sudo systemctl restart ziti-router` |
 
-```
+---
