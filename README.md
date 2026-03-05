@@ -182,8 +182,3 @@ $ZITI_BIN_DIR/ziti edge list edge-routers
 | `vm02-router` | `true` |
 
 ---
-
-
-Apakah Anda ingin saya bantu membuatkan file **Systemd Service** agar Controller dan Router ini otomatis berjalan setiap kali VM dinyalakan?
-
-```
