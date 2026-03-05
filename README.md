@@ -4,15 +4,13 @@
 [![Architecture](https://img.shields.io/badge/Architecture-NIST_SP_800--207-green?style=for-the-badge)](https://csrc.nist.gov/publications/detail/sp/800-207/final)
 [![Status](https://img.shields.io/badge/Status-Lab_Environment-orange?style=for-the-badge)](#)
 
-Dokumentasi ini menjelaskan prosedur instalasi **OpenZiti Zero Trust Network Access (ZTNA)** menggunakan arsitektur Multi-VM. Infrastruktur ini dirancang sebagai *testbed* untuk eksperimen keamanan berbasis NIST SP 800-207 dan fondasi integrasi **AI-based Policy Decision Point (PDP)**.
+Dokumentasi ini menjelaskan prosedur instalasi **OpenZiti Zero Trust Network Access (ZTNA)** menggunakan arsitektur Multi-VM. Infrastruktur ini dirancang sebagai *testbed* untuk eksperimen keamanan berbasis **NIST SP 800-207** dan fondasi integrasi **AI-based Policy Decision Point (PDP)**.
 
 ---
 
 ## 🏗️ Network Topology
 
 Arsitektur ini memisahkan **Control Plane** (Manajemen Kebijakan) dan **Data Plane** (Jalur Data Terenkripsi).
-
-
 
 ```mermaid
 graph TD
@@ -54,7 +52,9 @@ Gunakan IP statis agar koneksi antar node tetap persisten selama eksperimen.
 
 ## 🛠️ PART 1 — Setup VM-01 (ZT Controller)
 
-### 1. Persiapan Sistem untuk semua vm
+### 1. Persiapan Sistem
+
+Jalankan di **VM-01**:
 
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -64,18 +64,13 @@ sudo apt install curl wget gnupg jq -y
 
 ### 2. Konfigurasi Environment Variables
 
-Atur variabel agar Controller mengiklankan alamat IP yang benar:
-
 ```bash
 export EXTERNAL_IP="192.168.100.10"
-
 export ZITI_CTRL_EDGE_IP_OVERRIDE=$EXTERNAL_IP
 export ZITI_CTRL_ADVERTISED_ADDRESS=$EXTERNAL_IP
 export ZITI_CTRL_ADVERTISED_PORT=8440
-
 export ZITI_CTRL_EDGE_ADVERTISED_ADDRESS=$EXTERNAL_IP
 export ZITI_CTRL_EDGE_ADVERTISED_PORT=8441
-
 export ZITI_ROUTER_ADVERTISED_ADDRESS=$EXTERNAL_IP
 export ZITI_ROUTER_IP_OVERRIDE=$EXTERNAL_IP
 export ZITI_ROUTER_PORT=8442
@@ -84,33 +79,49 @@ export ZITI_ROUTER_PORT=8442
 
 ### 3. Instalasi OpenZiti Quickstart
 
-Muat fungsi pembantu (helper) dan jalankan instalasi otomatis:
-
 ```bash
-source /dev/stdin <<< "$(wget -qO- https://get.openziti.io/ziti-cli-functions.sh)"
+source /dev/stdin <<< "$(wget -qO- [https://get.openziti.io/quick/ziti-cli-functions.sh](https://get.openziti.io/quick/ziti-cli-functions.sh))"
 
 # Jalankan instalasi otomatis
 expressInstall
 
 ```
 
-### 4. Aktivasi Controller
+### 4. Konfigurasi Systemd Controller
+
+Agar Controller berjalan otomatis saat *booting*:
 
 ```bash
-# Load environment yang baru dibuat
-source ~/.ziti/quickstart/Ubuntu/Ubuntu.env
+sudo bash -c "cat <<EOF > /etc/systemd/system/ziti-controller.service
+[Unit]
+Description=OpenZiti Controller
+After=network.target
 
-# Jalankan Controller di background
-$ZITI_BIN_DIR/ziti controller run $ZITI_HOME/Ubuntu.yaml &
+[Service]
+User=$USER
+WorkingDirectory=$HOME/.ziti/quickstart/Ubuntu
+ExecStart=$HOME/.ziti/quickstart/Ubuntu/ziti-bin/ziti controller run $HOME/.ziti/quickstart/Ubuntu/Ubuntu.yaml
+Restart=always
+RestartSec=10
 
-# Login ke Controller (Gunakan password hasil expressInstall)
-$ZITI_BIN_DIR/ziti edge login 192.168.100.10:8441
+[Install]
+WantedBy=multi-user.target
+EOF"
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now ziti-controller
 
 ```
 
-### 5. Start Local Edge Router (Bootstrap)
+### 5. Login & Aktivasi Local Router
 
 ```bash
+source ~/.ziti/quickstart/Ubuntu/Ubuntu.env
+
+# Login ke Controller (Gunakan password dari log expressInstall)
+ziti edge login 192.168.100.10:8441
+
+# Start Local Edge Router (Bootstrap)
 $ZITI_BIN_DIR/ziti router run $ZITI_HOME/Ubuntu-edge-router.yaml &
 
 ```
@@ -119,13 +130,13 @@ $ZITI_BIN_DIR/ziti router run $ZITI_HOME/Ubuntu-edge-router.yaml &
 
 ## 🔑 PART 2 — Provisioning Identity untuk VM-02
 
-Masih di **VM-01**, buat identitas digital untuk router yang akan dipasang di VM-02:
+Masih di **VM-01**, buat identitas digital untuk router eksternal (VM-02):
 
 ```bash
 # Create Router Identity
-$ZITI_BIN_DIR/ziti edge create edge-router vm02-router --jwt-output-file vm02-router.jwt
+ziti edge create edge-router vm02-router --jwt-output-file vm02-router.jwt
 
-# Transfer token ke VM-02 (Ganti 'user' dengan username VM-02 Anda)
+# Transfer token ke VM-02 (Sesuaikan username)
 scp vm02-router.jwt user@192.168.100.11:~
 
 ```
@@ -136,7 +147,7 @@ scp vm02-router.jwt user@192.168.100.11:~
 
 ### 1. Instalasi Binary
 
-Jalankan perintah berikut di **VM-02**:
+Jalankan di **VM-02**:
 
 ```bash
 curl -LO [https://get.openziti.io/install.bash](https://get.openziti.io/install.bash)
@@ -144,23 +155,40 @@ sudo bash install.bash openziti
 
 ```
 
-### 2. Konfigurasi & Enrollment
-
-Daftarkan router ke Controller menggunakan token JWT:
+### 2. Enrollment
 
 ```bash
 # Buat file konfigurasi router
 ziti create config router edge --routerName vm02-router --output edge-router.yaml
 
-# Proses Pendaftaran (Enrollment)
+# Proses Pendaftaran
 ziti router enroll edge-router.yaml --jwt vm02-router.jwt
 
 ```
 
-### 3. Menjalankan Edge Router
+### 3. Konfigurasi Systemd Router
+
+Agar Edge Router berjalan sebagai *background service*:
 
 ```bash
-ziti router run edge-router.yaml &
+sudo bash -c "cat <<EOF > /etc/systemd/system/ziti-router.service
+[Unit]
+Description=OpenZiti Edge Router
+After=network.target
+
+[Service]
+User=$USER
+WorkingDirectory=$HOME
+ExecStart=/usr/local/bin/ziti router run $HOME/edge-router.yaml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF"
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now ziti-router
 
 ```
 
@@ -168,17 +196,28 @@ ziti router run edge-router.yaml &
 
 ## ✅ PART 4 — Verifikasi Status Akhir
 
-Kembali ke **VM-01**, jalankan perintah berikut untuk memastikan semua router terhubung:
+Kembali ke **VM-01**, jalankan perintah berikut untuk memastikan semua node berstatus **Online**:
 
 ```bash
-$ZITI_BIN_DIR/ziti edge list edge-routers
+ziti edge list edge-routers
 
 ```
 
-**Output yang diharapkan:**
+**Expected Output:**
 | NAME | ONLINE |
 | :--- | :--- |
 | `Ubuntu-edge-router` | `true` |
 | `vm02-router` | `true` |
 
 ---
+
+## 🛠️ Management & Debugging
+
+| Action | Command |
+| --- | --- |
+| Check Controller Log | `journalctl -u ziti-controller -f` |
+| Check Router Log | `journalctl -u ziti-router -f` |
+| Restart Controller | `sudo systemctl restart ziti-controller` |
+| Restart Router | `sudo systemctl restart ziti-router` |
+
+```
