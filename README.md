@@ -171,31 +171,50 @@ ziti router enroll edge-router.yaml --jwt vm02-router.jwt
 
 ### 3. Konfigurasi Systemd Router
 
-Agar Edge Router berjalan sebagai *background service*:
+Agar Edge Router berjalan sebagai *background service*, buat unit service systemd.
 
-```bash
-sudo bash -c "cat <<EOF > /etc/systemd/system/ziti-router.service
+```
+sudo nano /etc/systemd/system/ziti-router.service
+```
+
+Isi file berikut (ganti `<username>` dengan user yang menjalankan router):
+
+```
 [Unit]
 Description=OpenZiti Edge Router
 After=network.target
 
 [Service]
-User=$USER
-WorkingDirectory=$HOME
-ExecStart=/usr/local/bin/ziti router run $HOME/edge-router.yaml
+Type=simple
+User=<username>
+WorkingDirectory=/home/<username>
+ExecStart=/usr/bin/ziti router run /home/<username>/edge-router.yaml
 Restart=always
-RestartSec=10
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
-EOF"
-
-sudo systemctl daemon-reload
-sudo systemctl enable --now ziti-router
-
 ```
 
----
+Simpan file kemudian jalankan:
+
+```
+sudo systemctl daemon-reload
+sudo systemctl enable ziti-router
+sudo systemctl start ziti-router
+```
+
+Verifikasi status service:
+
+```
+sudo systemctl status ziti-router
+```
+
+Melihat log router:
+
+```
+journalctl -u ziti-router -f
+```
 
 ## ✅ PART 4 — Verifikasi Status Akhir
 
