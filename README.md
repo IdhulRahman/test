@@ -87,7 +87,7 @@ export ZITI_ROUTER_PORT=8442
 Muat fungsi pembantu (helper) dan jalankan instalasi otomatis:
 
 ```bash
-source /dev/stdin <<< "$(wget -qO- [https://get.openziti.io/quick/ziti-cli-functions.sh](https://get.openziti.io/quick/ziti-cli-functions.sh))"
+source /dev/stdin <<< "$(wget -qO- https://get.openziti.io/ziti-cli-functions.sh)"
 
 # Jalankan instalasi otomatis
 expressInstall
