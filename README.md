@@ -54,11 +54,11 @@ Gunakan IP statis agar koneksi antar node tetap persisten selama eksperimen.
 
 ## 🛠️ PART 1 — Setup VM-01 (ZT Controller)
 
-### 1. Persiapan Sistem
+### 1. Persiapan Sistem untuk semua vm
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install curl wget gnupg -y
+sudo apt install curl wget gnupg jq -y
 
 ```
 
