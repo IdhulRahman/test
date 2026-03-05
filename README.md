@@ -1,5 +1,3 @@
-Tentu, ini adalah versi lengkap dalam satu blok kode Markdown yang sudah dirapikan, menggunakan standar profesional GitHub (termasuk *badges*, tabel, dan *syntax highlighting*) agar kamu tinggal salin dan tempel ke file `README.md`.
-
 ```markdown
 # 🚀 OpenZiti ZTNA Lab Setup (Controller + Edge Router)
 
