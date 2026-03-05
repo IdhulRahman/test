@@ -153,7 +153,7 @@ scp vm02-router.jwt user@192.168.100.11:~
 Jalankan di **VM-02**:
 
 ```bash
-curl -LO [https://get.openziti.io/install.bash](https://get.openziti.io/install.bash)
+curl -LO https://get.openziti.io/install.bash
 sudo bash install.bash openziti
 
 ```
