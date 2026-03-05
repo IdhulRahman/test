@@ -183,20 +183,6 @@ $ZITI_BIN_DIR/ziti edge list edge-routers
 
 ---
 
-## 🎯 Kesimpulan & Hasil
-
-Setup berhasil menghasilkan **OpenZiti ZTNA Network** dengan spesifikasi:
-
-* ✔️ **Control Plane Active**: Mengelola identitas dan kebijakan akses.
-* ✔️ **Distributed Data Plane**: Multiple edge routers siap menangani lalu lintas.
-* ✔️ **Secure Overlay**: Komunikasi antar node melalui terowongan terenkripsi mTLS.
-* ✔️ **Foundation Ready**: Siap untuk integrasi AI Policy Engine dan Anomaly Detection.
-
----
-
-> **Note:** Lingkungan ini hanya untuk kebutuhan Lab. Untuk skala produksi, sangat disarankan menggunakan Systemd untuk manajemen service.
-
-```
 
 Apakah Anda ingin saya bantu membuatkan file **Systemd Service** agar Controller dan Router ini otomatis berjalan setiap kali VM dinyalakan?
 
