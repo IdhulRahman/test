@@ -80,11 +80,13 @@ export ZITI_ROUTER_PORT=8442
 ### 3. Instalasi OpenZiti Quickstart
 
 ```bash
-source /dev/stdin <<< "$(wget -qO- [https://get.openziti.io/quick/ziti-cli-functions.sh](https://get.openziti.io/quick/ziti-cli-functions.sh))"
+source /dev/stdin <<< "$(wget -qO- https://get.openziti.io/ziti-cli-functions.sh)"
 
 # Jalankan instalasi otomatis
 expressInstall
 
+# Load environment variables
+source ~/.ziti/quickstart/Ubuntu/Ubuntu.env
 ```
 
 ### 4. Konfigurasi Systemd Controller
@@ -92,37 +94,38 @@ expressInstall
 Agar Controller berjalan otomatis saat *booting*:
 
 ```bash
-sudo bash -c "cat <<EOF > /etc/systemd/system/ziti-controller.service
-[Unit]
-Description=OpenZiti Controller
-After=network.target
+# 1. Hentikan proses yang berjalan manual saat instalasi
+stopRouter
+stopController
 
-[Service]
-User=$USER
-WorkingDirectory=$HOME/.ziti/quickstart/Ubuntu
-ExecStart=$HOME/.ziti/quickstart/Ubuntu/ziti-bin/ziti controller run $HOME/.ziti/quickstart/Ubuntu/Ubuntu.yaml
-Restart=always
-RestartSec=10
+# 2. Generate unit files secara otomatis
+createControllerSystemdFile
+createRouterSystemdFile "${ZITI_ROUTER_NAME}"
 
-[Install]
-WantedBy=multi-user.target
-EOF"
+# 3. Install dan Aktifkan service
+sudo cp "${ZITI_HOME}/${ZITI_CTRL_NAME}.service" /etc/systemd/system/ziti-controller.service
+sudo cp "${ZITI_HOME}/${ZITI_ROUTER_NAME}.service" /etc/systemd/system/ziti-router.service
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now ziti-controller
+sudo systemctl enable --now ziti-router
 
 ```
 
-### 5. Login & Aktivasi Local Router
+### 5. Administrasi & Login Controller
+
+Setelah layanan berjalan melalui Systemd, gunakan perintah berikut untuk masuk ke mode administrasi. Di tahap ini, Anda tidak perlu lagi menjalankan router secara manual.
 
 ```bash
+# Memuat environment (Wajib dilakukan setiap membuka jendela terminal baru)
 source ~/.ziti/quickstart/Ubuntu/Ubuntu.env
 
-# Login ke Controller (Gunakan password dari log expressInstall)
+# Login ke Management API
+# Gunakan password Admin yang muncul di akhir log proses 'expressInstall'
 ziti edge login 192.168.100.10:8441
 
-# Start Local Edge Router (Bootstrap)
-$ZITI_BIN_DIR/ziti router run $ZITI_HOME/Ubuntu-edge-router.yaml &
+# Verifikasi status layanan
+ziti edge list edge-routers
 
 ```
 
