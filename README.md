@@ -86,7 +86,7 @@ source /dev/stdin <<< "$(wget -qO- https://get.openziti.io/ziti-cli-functions.sh
 expressInstall
 
 # Load environment variables
-source ~/.ziti/quickstart/Ubuntu/Ubuntu.env
+source ~/.ziti/quickstart/$(hostname)/$(hostname).env
 ```
 
 ### 4. Konfigurasi Systemd Controller
