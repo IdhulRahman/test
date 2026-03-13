@@ -118,7 +118,7 @@ Setelah layanan berjalan melalui Systemd, gunakan perintah berikut untuk masuk k
 
 ```bash
 # Memuat environment (Wajib dilakukan setiap membuka jendela terminal baru)
-source ~/.ziti/quickstart/Ubuntu/Ubuntu.env
+source ~/.ziti/quickstart/$(hostname)/$(hostname).env
 
 # Login ke Management API
 # Gunakan password Admin yang muncul di akhir log proses 'expressInstall'
